@@ -4,30 +4,19 @@ PREUPGRADE_CACHE=/var/cache/preupgrade/common
 PREUPGRADE_CONFIG=/etc/preupgrade-assistant.conf
 
 VALUE_RPM_QA=$PREUPGRADE_CACHE/rpm_qa.log
-PREUPG_RPM_QA=$VALUE_RPM_QA
 VALUE_ALL_CHANGED=$PREUPGRADE_CACHE/rpm_Va.log
-PREUPG_ALL_CHANGED=$VALUE_ALL_CHANGED
 VALUE_CONFIGCHANGED=$PREUPGRADE_CACHE/rpm_etc_Va.log
-PREUPG_CONFIGCHANGED=$VALUE_CONFIGCHANGED
 VALUE_PASSWD=$PREUPGRADE_CACHE/passwd.log
-PREUPG_PASSWD=$VALUE_PASSWD
 VALUE_CHKCONFIG=$PREUPGRADE_CACHE/chkconfig.log
-PREUPG_CHKCONFIG=$VALUE_CHKCONFIG
 VALUE_GROUP=$PREUPGRADE_CACHE/group.log
-PREUPG_GROUP=$VALUE_GROUP
 VALUE_RPMTRACKEDFILES=$PREUPGRADE_CACHE/rpmtrackedfiles.log
-PREUPG_RPMTRACKEDFILES=$VALUE_RPMTRACKEDFILES
 VALUE_RPM_RHSIGNED=$PREUPGRADE_CACHE/rpm_rhsigned.log
-PREUPG_RPM_RHSIGNED=$VALUE_RPM_RHSIGNED
 VALUE_ALLMYFILES=$PREUPGRADE_CACHE/allmyfiles.log
-PREUPG_ALLMYFILES=$VALUE_ALLMYFILES
 VALUE_EXECUTABLES=$PREUPGRADE_CACHE/executable.log
-PREUPG_EXECUTABLES=$VALUE_EXECUTABLES
 VALUE_TMP_PREUPGRADE=$XCCDF_VALUE_TMP_PREUPGRADE
-PREUPG_TMP_PREUPGRADE=$VALUE_TMP_PREUPGRADE
+CONFIG_FILES_DIR=$PREUPG_TMP_PREUPGRADE/config_files
 
 POSTUPGRADE_DIR=$VALUE_TMP_PREUPGRADE/postupgrade.d
-PREUPG_POSTUPGRADE_DIR=$POSTUPGRADE_DIR
 CURRENT_DIRECTORY=$XCCDF_VALUE_CURRENT_DIRECTORY
 MIGRATE=$XCCDF_VALUE_MIGRATE
 UPGRADE=$XCCDF_VALUE_UPGRADE
@@ -178,6 +167,7 @@ _get_cached_command()
 {
     # Function gets a cached command
     # input parameter is command provided by get_cached function
+    local command
     command=$1
     if [ ! -f "$command" ]; then
         log_error "File $command does not exist. It is mandatory."
@@ -192,74 +182,59 @@ get_cached()
     # Usage:    get_cached file <passwd,group>
     #           get_cached command <rpm_qa, rpm_Va, rpm_etc_Va, chconfig>
     #           get_cached filelist <executable, allmyfiles, rpmrhsignedfiles, rpmtrackedfiles>
+    local command
+    local key
     command=$1
     key=$2
     case $command in
         "file")
             case $key in
                 "passwd")
-                    if [ ! -f "$PREUPG_PASSWD" ]; then
-                        log_error "File $PREUPG_PASSWD does not exist. It is mandatory."
-                    else
-                        cat $PREUPG_PASSWD
-                    fi
                     ;;
                 "group")
-                    if [ ! -f "$PREUPG_GROUP" ]; then
-                        log_error "File $PREUPG_GROUP does not exist. It is mandatory."
-                    else
-                        cat $PREUPG_GROUP
-                    fi
                     ;;
                 *)
                     log_error "Unknown $key for $command. Supported are 'passwd', 'group'."
                     return 1
                     ;;
             esac
+            _get_cached_command "$PREUPGRADE_CACHE/$key.log"
             ;;
         "command")
             case $key in
                 "rpm_qa")
-                    _get_cached_command $PREUPG_RPM_QA
                     ;;
                 "rpm_Va")
-                    _get_cached_command $PREUPG_ALL_CHANGED
                     ;;
                 "rpm_etc_Va")
-                    _get_cached_command $PREUPG_CONFIGCHANGED
                     ;;
                 "chconfig")
-                    _get_cached_command $PREUPG_CHKCONFIG
                     ;;
                 *)
                     log_error "Unknown $key for $command. Supported are 'rpm_qa', 'rpm_Va', 'rpm_etc_Va', 'chkconfig'".
                     return 1
                     ;;
             esac
+            _get_cached_command "$PREUPGRADE_CACHE/$key.log"
             ;;
         "filelist")
             case $key in
                 "allmyfiles")
-                    _get_cached_command $PREUPG_ALLMYFILES
                     ;;
                 "executable")
-                    _get_cached_command $PREUPG_EXECUTABLES
                     ;;
                 "rpmtrackedfiles")
-                    _get_cached_command $PREUPG_RPMTRACKEDFILES
                     ;;
-                "rpmrhsignedfiles")
-                    _get_cached_command $PREUPG_RPM_RHSIGNED
+                "rpm_rhsigned")
                     ;;
                 *)
-                    log_error "Unknown $key for $command. Supported are 'executable', 'allmyfiles', 'rpmtrackedfiles', 'rpmrhsignedfiles'."
+                    log_error "Unknown $key for $command. Supported are 'executable', 'allmyfiles', 'rpmtrackedfiles', 'rpm_rhsigned'."
                     return 1
             esac
-            ;;
-        "info")
+            _get_cached_command "$PREUPGRADE_CACHE/$key.log"
             ;;
         *)
-            log_error "Unknown command $command. Supported are 'file', 'command', filelist', 'info'."
+            log_error "Unknown command $command. Supported are 'file', 'command', filelist'."
             return 1
             ;;
     esac
@@ -271,12 +246,14 @@ add_postupgrade()
     # Add postupgrade script to /root/preupgrade/postupgrade.d directory
     # File as first parameter has to exists in modules directory
     # Usage:    add_postupgrade file
+    local script_name
+    local postupgrade_name
 
     script_name=$1
-    postupgrade_name="$PREUPG_POSTUPGRADE_DIR/`basename $script_name`"
+    postupgrade_name="$PREUPG_POSTUPGRADE_DIR/$(basename $script_name)"
     [ ! -f "$script_name" ] && log_error "$script_name does not exist." && exit_error
     [ -f "$postupgrade_name" ] && log_warning "$script_name already exists in $PREUPG_POSTUPGRADE_DIR"
-    cp -af $script_name $postupgrade_name
+    cp -af ${script_name} ${$postupgrade_name}
 }
 
 add_manual_postupgrade()
@@ -285,38 +262,37 @@ add_manual_postupgrade()
     # File as first parameter has to exists in modules directory
     # Usage:    add_manual_postupgrade file
 
+    local script_name
+    local postupgrade_name
     script_name=$1
-    postupgrade_name="$NOAUTO_POSTUPGRADE_D/`basename $script_name`"
+    postupgrade_name="$NOAUTO_POSTUPGRADE_D/$(basename $script_name)"
     [ ! -f "$script_name" ] && log_error "$script_name does not exist." && exit_error
     [ -f "$postupgrade_name" ] && log_warning "$script_name already exists in $NOAUTO_POSTUPGRADE_D"
-    cp -af $script_name $postupgrade_name
+    cp -af ${script_name} ${postupgrade_name}
 }
 
-add_to_kickstart_readme()
+store_for_kickstart()
 {
-    # Add filename and description to /root/preupgrade/kickstart/README file
-    # Filename as first parameter which will be inserted into README file
+    # Add file to /root/preupgrade/kickstart directory
+    # and update description in README file
+    # File as first parameter has to exists
     # Description of filename as second parameter which will be inserted into README file.
+    # Usage:    store_for_kickstart <filename> <description>
     # Format in README file is:
     # * <filename> - <description>
-    # Usage:    add_to_kickstart_readme <filename> <description>
-    filename=$1
-    description=$2
     [ -z "$1" ] && log_error "Missing filename parameter."
-    [ -z "$2" ] && log_error "Missing description of filename to kickstart README."
-    echo " * $filename - $description" >> $KICKSTART_README
-}
 
-add_kickstart_dir()
-{
-    # Add filename /root/preupgrade/kickstart directory
-    # File as first parameter has to exists in modules directory
-    # Usage:    add_to_kickstart_dir <filename> <description>
-    script_name=$1
-    kickstart_name="$KICKSTART_DIR/`basename $script_name`"
+    local script_name=$1
+    local description=$2
+    local filename
+
+    filename=$(basename "$script_name")
+    kickstart_name="$KICKSTART_DIR/$filename"
     [ ! -f "$script_name" ] && log_error "$script_name does not exist." && exit_error
-    [ -f "$kickstart_name" ] && log_warning "`basename $script_name` already exists in $KICKSTART_DIR"
-    cp -af $script_name $kickstart_name
+    [ -f "$kickstart_name" ] && log_warning "$filename already exists in $KICKSTART_DIR"
+    cp -af "$script_name" "$kickstart_name"
+    [ -z "$description" ] && return 0
+    echo " * $filename - $description" >> $KICKSTART_README
 }
 
 get_option()
@@ -326,13 +302,15 @@ get_option()
     # Usage:    get_option option
     # Returns:  0,1
 
+    local option
+
     option=$1
-    case $option in
+    case "$option" in
         "migration")
-            return $MIGRATE
+            return "$MIGRATE"
             ;;
         "upgrade")
-            return $UPGRADE
+            return "$UPGRADE"
             ;;
         *)
             log_error "Supported options are 'migration', 'upgrade'."
