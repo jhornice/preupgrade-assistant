@@ -117,6 +117,9 @@ needs_action = "needs_action"
 
 openscap_binary = "/usr/bin/oscap"
 
+# file which contains source and target version used for migration / upgrade
+upgrade_version_file = "upgrade_path"
+
 # The full license text
 license = u"""Preupgrade Assistant performs system upgradability assessment
 and gathers information required for successful operating system upgrade.
