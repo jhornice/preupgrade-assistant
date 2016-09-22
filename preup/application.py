@@ -52,21 +52,6 @@ def list_contents(source_dir):
     return content_dict
 
 
-def show_message(message):
-    """
-    Prints message out on stdout message (kind of yes/no) and return answer.
-
-    Return values are:
-    Return True on accept (y/yes). Otherwise returns False
-    """
-    accept = ['y', 'yes']
-    choice = MessageHelper.get_message(title=message, prompt='[Y/n]')
-    if choice.lower() in accept:
-        return True
-    else:
-        return False
-
-
 class Application(object):
 
     """Class for oscap binary and reporting results to UI"""
@@ -230,13 +215,7 @@ class Application(object):
         """Returns a total check"""
         return self.report_parser.get_number_checks()
 
-    def run_scan_process(self):
-        """Function scans the source system"""
-        self.xml_mgr = xml_manager.XmlManager(self.conf.result_dir,
-                                              self.get_scenario(),
-                                              os.path.basename(self.content),
-                                              self.conf.result_name)
-
+    def _update_report(self):
         self.report_parser.add_global_tags(self.conf.result_dir,
                                            self.get_proper_scenario(self.get_scenario()),
                                            self.conf.mode,
@@ -246,6 +225,14 @@ class Application(object):
         self.report_parser.modify_result_path(self.conf.result_dir,
                                               self.get_proper_scenario(self.get_scenario()),
                                               self.conf.mode)
+
+    def run_scan_process(self):
+        """Function scans the source system"""
+        self.xml_mgr = xml_manager.XmlManager(self.conf.result_dir,
+                                              self.get_scenario(),
+                                              os.path.basename(self.content),
+                                              self.conf.result_name)
+        self._update_report()
         # Execute assessment
         self.scanning_progress = ScanProgress(self.get_total_check(), self.conf.debug)
         self.scanning_progress.set_names(self.report_parser.get_name_of_checks())
@@ -281,7 +268,7 @@ class Application(object):
         try:
             sep_content = os.path.dirname(self.content).split('/')
             if self.conf.contents:
-                dir_name = SystemIdentification.get_valid_scenario(self.content)
+                dir_name = SystemIdentification.get_valid_scenario(self.conf.base_dir)
                 if dir_name is None:
                     return None
                 check_name = dir_name
@@ -449,7 +436,7 @@ class Application(object):
         if not self.conf.contents:
             XccdfHelper.update_platform(os.path.join(self.assessment_dir, settings.content_file))
         else:
-            XccdfHelper.update_platform(self.content)
+            XccdfHelper.update_platform(self.content, self.conf.base_dir)
             self.assessment_dir = os.path.dirname(self.content)
         return 0
 
@@ -612,6 +599,10 @@ class Application(object):
                 log_message("%s" % dir_name)
             return 0
 
+        if self.conf.contents and not self.conf.base_dir:
+            log_message(settings.base_dir_missing)
+            return 0
+
         if not self.conf.scan and not self.conf.contents and not self.conf.list_rules:
             ret_val = self._check_available_contents()
             if int(ret_val) != 0:
@@ -634,24 +625,8 @@ class Application(object):
             log_message(settings.options_not_allowed)
             return ReturnValues.MODE_SELECT_RULES
 
-        if not self.conf.riskcheck and not self.conf.cleanup and not self.conf.kickstart:
-            # If force option is not mentioned and user select NO then exits
-            if not self.conf.force:
-                text = ""
-                if self.conf.dst_arch:
-                    correct_option = [x for x in settings.migration_options if self.conf.dst_arch == x]
-                    if not correct_option:
-                        log_message("Specify the correct --dst-arch option.")
-                        log_message("There are '%s' or '%s' available." % (settings.migration_options[0],
-                                                                    settings.migration_options[1]))
-                        return ReturnValues.RISK_CLEANUP_KICKSTART
-                if SystemIdentification.get_arch() == "i386" or SystemIdentification.get_arch() == "i686":
-                    if not self.conf.dst_arch:
-                        text = '\n' + settings.migration_text
-                logger_debug.debug("Architecture '%s'. Text '%s'.", SystemIdentification.get_arch(), text)
-                if not show_message(settings.warning_text + text):
-                    # We do not want to continue
-                    return ReturnValues.RISK_CLEANUP_KICKSTART
+        if SystemIdentification.arch_checker(self.conf) != 0:
+            return ReturnValues.RISK_CLEANUP_KICKSTART
 
         if self.conf.text:
             # Test whether w3m, lynx and elinks packages are installed
@@ -713,9 +688,7 @@ class Application(object):
                 return ReturnValues.SCENARIO
 
         if self.conf.contents:
-            self.content = os.path.join(os.getcwd(), self.conf.contents)
-            # From content path like content-users/RHEL6_7 we need
-            # to get content-users dir
+            self.content = os.path.abspath(self.conf.contents)
             content_dir = self.conf.contents[:self.conf.contents.find(self.get_scenario())]
             self.conf.source_dir = os.path.join(os.getcwd(), content_dir)
 

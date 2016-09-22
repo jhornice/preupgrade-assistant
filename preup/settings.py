@@ -171,7 +171,7 @@ text_converters = {'w3m': '{0} -T text/html -dump {1} > {2}',
                    'lynx': '{0} -nonumbers -nolist -force_html -dump -nolist -width=255 {1} > {2}',
                    'elinks': '{0} --no-references -dump-width 255 --no-numbering -dump {1} > {2}',
                    }
-
+base_dir_missing = "The base directory is needed for testing a module."
 ui_command = "preupg -u http://example.com:8099/submit/ -r {0}"
 openssl_command = "openssl x509 -text -in {0} | grep -A1 1.3.6.1.4.1.2312.9.1"
 

@@ -9,7 +9,7 @@ def suite():
     settings.preupg_log = os.path.join(settings.log_dir, "preupg.log")
     settings.preupg_report_log = os.path.join(settings.log_dir, "preupg-report.log")
 
-    suite = unittest.TestSuite()
+    suite_preup = unittest.TestSuite()
     dirname = os.path.join(os.path.dirname(__file__), 'tmp')
     solution_txt = 'solution.txt'
     os.environ['XCCDF_VALUE_TMP_PREUPGRADE'] = dirname
@@ -31,12 +31,12 @@ def suite():
     from tests import test_api
     from tests import test_kickstart
     from tests import test_inplace_risks
-    suite.addTests(test_preup.suite())
-    suite.addTests(test_xml.suite())
-    suite.addTests(test_kickstart.suite())
-    suite.addTests(test_inplace_risks.suite())
-    suite.addTests(test_api.suite())
-    return suite
+    suite_preup.addTests(test_preup.suite())
+    suite_preup.addTests(test_xml.suite())
+    suite_preup.addTests(test_kickstart.suite())
+    suite_preup.addTests(test_inplace_risks.suite())
+    suite_preup.addTests(test_api.suite())
+    return suite_preup
 
 if __name__ == '__main__':
     unittest.TextTestRunner(verbosity=3).run(suite())

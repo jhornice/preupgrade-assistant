@@ -18,14 +18,12 @@ except ImportError:
 
 
 class TestPreupg(base.TestCase):
-
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+    temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    def test_all(self):
+    def test_dir_name_prefix(self):
 
         """Basic test for whole program"""
 
@@ -41,6 +39,34 @@ class TestPreupg(base.TestCase):
 
         dc = DummyConf(**conf)
         cli = CLI(["--contents", "tests/FOOBAR6_7/dummy_preupg/all-xccdf-migrate.xml"])
+        a = Application(Conf(dc, settings, cli))
+        # Prepare all variables for test
+        a.conf.source_dir = os.getcwd()
+        a.content = a.conf.contents
+        a.basename = os.path.basename(a.content)
+        a.openscap_helper = OpenSCAPHelper(a.conf.result_dir,
+                                           a.conf.result_name,
+                                           a.conf.xml_result_name,
+                                           a.conf.html_result_name,
+                                           a.content)
+        self.assertEqual(a.run_scan(), 0)
+
+    def test_dir_name_file(self):
+
+        """Basic test for whole program"""
+
+        conf = {
+            "contents": "tests/FOOBAR/dummy_preupg/all-xccdf-migrate.xml",
+            "profile": "xccdf_preupg_profile_default",
+            "result_dir": self.temp_dir,
+            "skip_common": True,
+            "temp_dir": self.temp_dir,
+            "id": None,
+            "debug": True,  # so root check won't fail
+        }
+
+        dc = DummyConf(**conf)
+        cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf-migrate.xml"])
         a = Application(Conf(dc, settings, cli))
         # Prepare all variables for test
         a.conf.source_dir = os.getcwd()
@@ -93,6 +119,8 @@ class TestPreupg(base.TestCase):
 
 
 class TestPreupg(base.TestCase):
+    temp_dir = None
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
 
@@ -144,9 +172,8 @@ class TestPreupg(base.TestCase):
 
 
 class TestXMLUpdates(base.TestCase):
-    def setUp(self):
-        self.content = "tests/FOOBAR6_7/dummy_preupg/all-xccdf-upgrade.xml"
-        self.test_content = self.content+".test"
+    content = "tests/FOOBAR6_7/dummy_preupg/all-xccdf-upgrade.xml"
+    test_content = content + ".test"
 
     def tearDown(self):
         os.remove(self.test_content)
@@ -235,8 +262,7 @@ class TestCLI(base.TestCase):
 
 
 class TestHashes(base.TestCase):
-    def setUp(self):
-        self.dir_name = tempfile.mkdtemp()
+    dir_name = tempfile.mkdtemp()
 
     def tearDown(self):
         shutil.rmtree(self.dir_name)
@@ -254,8 +280,7 @@ class TestHashes(base.TestCase):
 
 
 class TestSolutionReplacement(base.TestCase):
-    def setUp(self):
-        self.extension = "html"
+    extension = "html"
 
     def test_solution_bold_tag(self):
         solution_text = ['This is solution text [bold: provided as text ] by check script']
@@ -295,6 +320,8 @@ class TestSolutionReplacement(base.TestCase):
 
 
 class TestScenario(base.TestCase):
+    temp_dir = None
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
 
@@ -323,6 +350,29 @@ class TestScenario(base.TestCase):
         a.content = a.conf.contents
         a.basename = os.path.basename(a.content)
         self.assertEqual(a.get_scenario(), "FOOBAR6_77")
+
+    def test_correct_scenario_in_file(self):
+        """
+        Basic test for whole program
+        """
+        conf = {
+            "contents": "tests/FOOBAR/dummy_preupg/all-xccdf.xml",
+            "profile": "xccdf_preupg_profile_default",
+            "result_dir": self.temp_dir,
+            "skip_common": True,
+            "temp_dir": self.temp_dir,
+            "id": None,
+            "debug": True,  # so root check won't fail
+        }
+
+        dc = DummyConf(**conf)
+        cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf.xml"])
+        a = Application(Conf(dc, settings, cli))
+        # Prepare all variables for test
+        a.conf.source_dir = os.getcwd()
+        a.content = a.conf.contents
+        a.basename = os.path.basename(a.content)
+        self.assertEqual(a.get_scenario(), "6_77")
 
     def test_migration_content_scenario(self):
         """
