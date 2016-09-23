@@ -239,12 +239,13 @@ class TestCLI(base.TestCase):
             "version": True,
             "force": True,
             "riskcheck": True,
+            "base_dir": "modules/FOOBAR"
         }
         dc = DummyConf(**conf)
         cli = CLI(["--scan", "FOOBAR6_7", "--skip-common", "--list-contents-set", "--verbose", "--text",
                    "--contents", "content/FOOBAR6_7", "--cleanup", "--mode", "upgrade",
                    "--select-rules", "abc", "--list-rules", "--version", "--force",
-                   "--riskcheck"])
+                   "--riskcheck", "--base-dir", "modules/FOOBAR"])
         a = Application(Conf(cli.opts, dc, cli))
 
         self.assertTrue(a.conf.skip_common)
@@ -259,6 +260,7 @@ class TestCLI(base.TestCase):
         self.assertEqual(a.conf.mode, "upgrade")
         self.assertEqual(a.conf.select_rules, "abc")
         self.assertTrue(a.conf.riskcheck)
+        self.assertEqual(a.conf.base_dir, "modules/FOOBAR")
 
 
 class TestHashes(base.TestCase):
@@ -340,6 +342,7 @@ class TestScenario(base.TestCase):
             "temp_dir": self.temp_dir,
             "id": None,
             "debug": True,  # so root check won't fail
+            "base_dir": "tests/FOOBAR6_77",
         }
 
         dc = DummyConf(**conf)
@@ -363,8 +366,8 @@ class TestScenario(base.TestCase):
             "temp_dir": self.temp_dir,
             "id": None,
             "debug": True,  # so root check won't fail
+            "base_dir": "tests/FOOBAR",
         }
-
         dc = DummyConf(**conf)
         cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf.xml"])
         a = Application(Conf(dc, settings, cli))
@@ -372,7 +375,11 @@ class TestScenario(base.TestCase):
         a.conf.source_dir = os.getcwd()
         a.content = a.conf.contents
         a.basename = os.path.basename(a.content)
-        self.assertEqual(a.get_scenario(), "6_77")
+        self.assertEqual(a.get_scenario(), None)
+        lines = ['6_7']
+        FileHelper.write_to_file(os.path.join('tests/FOOBAR', settings.upgrade_version_file), 'wb', lines)
+        self.assertEqual(a.get_scenario(), "FOOBAR")
+        os.unlink(os.path.join('tests/FOOBAR', settings.upgrade_version_file))
 
     def test_migration_content_scenario(self):
         """
@@ -386,6 +393,7 @@ class TestScenario(base.TestCase):
             "temp_dir": self.temp_dir,
             "id": None,
             "debug": True,  # so root check won't fail
+            "base_dir": "tests/FOOBAR6_CENTOS6",
         }
 
         dc = DummyConf(**conf)
@@ -409,6 +417,7 @@ class TestScenario(base.TestCase):
             "temp_dir": self.temp_dir,
             "id": None,
             "debug": True,  # so root check won't fail
+            "base_dir": "tests/FOOBAR6_7A",
         }
 
         dc = DummyConf(**conf)

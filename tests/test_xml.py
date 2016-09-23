@@ -467,8 +467,13 @@ A solution text for test suite"
         text_ini += '\n'.join([key + " = " + self.test_ini[key] for key in self.test_ini])
         text_ini += '\n[]\neliskk\n'
         FileHelper.write_to_file(self.filename, "wb", text_ini)
-        oscap = OscapGroupXml(self.dir_name)
-        self.assertRaises(SystemExit, oscap.find_all_ini)
+        sys_exit = False
+        try:
+            oscap = OscapGroupXml(self.dir_name)
+            oscap.write_xml()
+        except SystemExit:
+            sys_exit = True
+        self.assertTrue(sys_exit)
 
     def test_secret_check_script(self):
         """Check occurrence of secret file for check script"""
