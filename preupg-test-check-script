@@ -26,7 +26,6 @@ class CheckTestScript(object):
         config = configparser.RawConfigParser(allow_no_value=True)
         config.read(self.config_file)
         section = "preupgrade-assistant"
-        bash_environment = []
         if config.has_section(section):
             options = config.options(section)
             for opt in options:
