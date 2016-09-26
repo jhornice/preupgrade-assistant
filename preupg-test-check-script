@@ -18,6 +18,7 @@ class CheckTestScript(object):
     def __init__(self, script_name, config_file=None):
         self.script_name = script_name
         self.config_file = config_file
+        self.bash_environment = []
         if config_file:
             self._load_config_file()
 
@@ -25,15 +26,22 @@ class CheckTestScript(object):
         config = configparser.RawConfigParser(allow_no_value=True)
         config.read(self.config_file)
         section = "preupgrade-assistant"
+        bash_environment = []
         if config.has_section(section):
             options = config.options(section)
             for opt in options:
-                os.environ[opt.upper()] = config.get(section, opt)
+                value = config.get(section, opt)
+                os.environ[opt.upper()] = value
+                bash_script = opt.upper() + '=' + value
+                self.bash_environment.append(bash_script)
 
     def test_script(self):
-        print(self.script_name)
-        test_file = imp.load_source(os.path.basename(self.script_name)[:-3], self.script_name)
-        test_file.main()
+        script_type = FileHelper.get_script_type(self.script_name)
+        if script_type == "python":
+            test_file = imp.load_source(os.path.basename(self.script_name)[:-3], self.script_name)
+            test_file.main()
+        else:
+            ProcessHelper.run_subprocess(self.script_name, print_output=True)
 
 
 def main():
