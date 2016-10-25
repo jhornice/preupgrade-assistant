@@ -466,20 +466,28 @@ class SystemIdentification(object):
         return settings.text_converters.keys()
 
     @staticmethod
+    def get_version_file(dirname):
+        return os.path.join(dirname, settings.upgrade_version_file)
+
+    @staticmethod
     def get_assessment_version(dir_name):
         if PreupgHelper.get_prefix() == "preupgrade":
-            matched = re.search(r'\D+(\d*)_(\d+)', dir_name, re.I)
-            if matched:
-                return [matched.group(1), matched.group(2)]
+            version_file = SystemIdentification.get_version_file(dir_name)
+            if version_file:
+                lines = SystemIdentification.check_version_file(version_file)
+                if lines:
+                    return [SystemIdentification.check_version(lines)]
 
         elif PreupgHelper.get_prefix() == "premigrate":
             matched = re.search(r'\D+(\d*)_\D+(\d+)', dir_name, re.I)
             if matched:
                 return [matched.group(1), matched.group(2)]
         else:
-            matched = re.search(r'\D+(\d*)_(\D*)(\d+)', dir_name, re.I)
-            if matched:
-                return [matched.group(1), matched.group(3)]
+            version_file = SystemIdentification.get_version_file(dir_name)
+            if version_file:
+                lines = SystemIdentification.check_version_file(version_file)
+                if lines:
+                    return [SystemIdentification.check_version(lines)]
         return None
 
     @staticmethod
@@ -488,6 +496,8 @@ class SystemIdentification(object):
             src, target = lines[0].split('_')
             int(src)
             int(target)
+            if int(src) >= int(target):
+                return False
         except IndexError:
             return False
         except ValueError:
@@ -495,24 +505,28 @@ class SystemIdentification(object):
         return src, target
 
     @staticmethod
+    def check_version_file(version_file):
+        if not os.path.exists(version_file):
+            print("The '%s' upgrade path file does not exist." % version_file)
+            return False
+        lines = FileHelper.get_file_content(version_file, 'r', method=True)
+        if not lines:
+            print("'The '%s' upgrade path file is empty" % version_file)
+            return False
+        return lines
+
+    @staticmethod
     def get_valid_scenario(dir_name):
-        matched = [x for x in dir_name.split(os.path.sep) if re.match(r'\D+(\d*)_(\D*)(\d+)(-results)?$', x, re.I)]
-        if matched:
-            return matched[0]
-        else:
-            version_file = os.path.join(dir_name, settings.upgrade_version_file)
-            if not os.path.exists(version_file):
-                print("The '%s' upgrade path file does not exist." % version_file)
-                return None
-            lines = FileHelper.get_file_content(version_file, 'r', method=True)
-            if not lines:
-                print("'The '%s' upgrade path file is empty" % version_file)
-            if not SystemIdentification.check_version(lines):
-                print("The '%s' upgrade file does not have proper format." % version_file)
-                print("The upgrade path file contains:\n%s" % '\n'.join(lines))
-                print("It should be like:\n6_7")
-                return None
-            return os.path.basename(dir_name)
+        version_file = os.path.join(dir_name, settings.upgrade_version_file)
+        lines = SystemIdentification.check_version_file(version_file)
+        if not lines:
+            return None
+        if not SystemIdentification.check_version(lines):
+            print("The '%s' upgrade file does not have proper format." % version_file)
+            print("The upgrade path file contains:\n%s" % '\n'.join(lines))
+            print("It should be like:\n6_7")
+            return None
+        return os.path.basename(dir_name)
 
     @staticmethod
     def get_variant():

@@ -28,7 +28,7 @@ class TestPreupg(base.TestCase):
         """Basic test for whole program"""
 
         conf = {
-            "contents": "tests/FOOBAR6_7/dummy_preupg/all-xccdf-migrate.xml",
+            "contents": "tests/FOOBAR/dummy_preupg/all-xccdf-migrate.xml",
             "profile": "xccdf_preupg_profile_default",
             "result_dir": self.temp_dir,
             "skip_common": True,
@@ -38,7 +38,7 @@ class TestPreupg(base.TestCase):
         }
 
         dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR6_7/dummy_preupg/all-xccdf-migrate.xml"])
+        cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf-migrate.xml"])
         a = Application(Conf(dc, settings, cli))
         # Prepare all variables for test
         a.conf.source_dir = os.getcwd()
@@ -83,7 +83,7 @@ class TestPreupg(base.TestCase):
         """Basic test for whole program"""
 
         conf = {
-            "contents": "tests/FOOBAR6_7/dummy_preupg/all-xccdf.xml",
+            "contents": "tests/FOOBAR/dummy_preupg/all-xccdf.xml",
             "profile": "xccdf_preupg_profile_default",
             "result_dir": self.temp_dir,
             "skip_common": True,
@@ -94,7 +94,7 @@ class TestPreupg(base.TestCase):
         }
 
         dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR6_7/dummy_preupg/all-xccdf-migrate.xml", "--mode", "migrate"])
+        cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf-migrate.xml", "--mode", "migrate"])
         a = Application(Conf(dc, settings, cli))
         # Prepare all variables for test
         a.conf.source_dir = os.getcwd()
@@ -102,7 +102,7 @@ class TestPreupg(base.TestCase):
         a.basename = os.path.basename(a.content)
         self.assertEqual(a.run_scan(), 0)
         rp = ReportParser(os.path.join(self.temp_dir, "result.xml"))
-        rp.modify_result_path(self.temp_dir, "FOOBAR6_7", 'migrate')
+        rp.modify_result_path(self.temp_dir, "FOOBAR", 'migrate')
         found_migrate = 0
         found_upgrade = 0
         for values in rp.get_nodes(rp.target_tree, "Value", ".//"):
@@ -131,7 +131,7 @@ class TestPreupg(base.TestCase):
         """Basic test for whole program"""
 
         conf = {
-            "contents": "tests/FOOBAR6_7/dummy_preupg/all-xccdf-upgrade.xml",
+            "contents": "tests/FOOBAR/dummy_preupg/all-xccdf-upgrade.xml",
             "profile": "xccdf_preupg_profile_default",
             "result_dir": self.temp_dir,
             "skip_common": True,
@@ -142,7 +142,7 @@ class TestPreupg(base.TestCase):
         }
 
         dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR6_7/dummy_preupg/all-xccdf-upgrade.xml", "--mode", "upgrade"])
+        cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf-upgrade.xml", "--mode", "upgrade"])
         a = Application(Conf(dc, settings, cli))
         # Prepare all variables for test
         a.conf.source_dir = os.getcwd()
@@ -155,7 +155,7 @@ class TestPreupg(base.TestCase):
                                            a.content)
         self.assertEqual(a.run_scan(), 0)
         rp = ReportParser(os.path.join(self.temp_dir, "result.xml"))
-        rp.modify_result_path(self.temp_dir, "FOOBAR6_7", 'upgrade')
+        rp.modify_result_path(self.temp_dir, "FOOBAR", 'upgrade')
         found_migrate = 0
         found_upgrade = 0
         for values in rp.get_nodes(rp.target_tree, "Value", ".//"):
@@ -172,7 +172,7 @@ class TestPreupg(base.TestCase):
 
 
 class TestXMLUpdates(base.TestCase):
-    content = "tests/FOOBAR6_7/dummy_preupg/all-xccdf-upgrade.xml"
+    content = "tests/FOOBAR/dummy_preupg/all-xccdf-upgrade.xml"
     test_content = content + ".test"
 
     def tearDown(self):
@@ -193,7 +193,7 @@ class TestXMLUpdates(base.TestCase):
         shutil.copyfile(self.content, self.test_content)
         rp = ReportParser(self.test_content)
         result_path = "/abc/def"
-        rp.modify_result_path(result_path, "FOOBAR6_7", 'migrate')
+        rp.modify_result_path(result_path, "FOOBAR", 'migrate')
         found_tmp = 0
 
         for values in rp.get_nodes(rp.target_tree, "Value", ".//"):
@@ -208,7 +208,7 @@ class TestXMLUpdates(base.TestCase):
         shutil.copyfile(self.content, self.test_content)
         rp = ReportParser(self.test_content)
         result_path = "/abc/efg"
-        scenario = 'FOOBAR6_7'
+        scenario = 'FOOBAR'
         rp.modify_result_path(result_path, scenario, 'migrate')
         found_current = 0
         for values in rp.get_nodes(rp.target_tree, "Value", ".//"):
@@ -225,13 +225,13 @@ class TestCLI(base.TestCase):
     def test_opts(self):
         """ basic test of several options """
         conf = {
-            "scan": "FOOBAR6_7",
+            "scan": "FOOBAR",
             "skip_common": False,
             "id": 1,
             "list_contents_set": True,
             "verbose": 1,
             "text": True,
-            "contents": "content/FOOBAR6_7",
+            "contents": "content/FOOBAR",
             "cleanup": True,
             "mode": 'upgrade',
             "select_rules": "abc",
@@ -242,21 +242,21 @@ class TestCLI(base.TestCase):
             "base_dir": "modules/FOOBAR"
         }
         dc = DummyConf(**conf)
-        cli = CLI(["--scan", "FOOBAR6_7", "--skip-common", "--list-contents-set", "--verbose", "--text",
-                   "--contents", "content/FOOBAR6_7", "--cleanup", "--mode", "upgrade",
+        cli = CLI(["--scan", "FOOBAR", "--skip-common", "--list-contents-set", "--verbose", "--text",
+                   "--contents", "content/FOOBAR", "--cleanup", "--mode", "upgrade",
                    "--select-rules", "abc", "--list-rules", "--version", "--force",
                    "--riskcheck", "--base-dir", "modules/FOOBAR"])
         a = Application(Conf(cli.opts, dc, cli))
 
         self.assertTrue(a.conf.skip_common)
-        self.assertEqual(a.conf.contents, "content/FOOBAR6_7")
+        self.assertEqual(a.conf.contents, "content/FOOBAR")
         self.assertTrue(a.conf.list_contents_set)
         self.assertTrue(a.conf.list_rules)
         self.assertTrue(a.conf.force)
         self.assertTrue(a.conf.text)
         self.assertTrue(a.conf.cleanup)
         self.assertEqual(int(a.conf.verbose), 1)
-        self.assertEqual(a.conf.scan, "FOOBAR6_7")
+        self.assertEqual(a.conf.scan, "FOOBAR")
         self.assertEqual(a.conf.mode, "upgrade")
         self.assertEqual(a.conf.select_rules, "abc")
         self.assertTrue(a.conf.riskcheck)
@@ -335,30 +335,6 @@ class TestScenario(base.TestCase):
         Basic test for whole program
         """
         conf = {
-            "contents": "tests/FOOBAR6_77/dummy_preupg/all-xccdf.xml",
-            "profile": "xccdf_preupg_profile_default",
-            "result_dir": self.temp_dir,
-            "skip_common": True,
-            "temp_dir": self.temp_dir,
-            "id": None,
-            "debug": True,  # so root check won't fail
-            "base_dir": "tests/FOOBAR6_77",
-        }
-
-        dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR6_77/dummy_preupg/all-xccdf.xml"])
-        a = Application(Conf(dc, settings, cli))
-        # Prepare all variables for test
-        a.conf.source_dir = os.getcwd()
-        a.content = a.conf.contents
-        a.basename = os.path.basename(a.content)
-        self.assertEqual(a.get_scenario(), "FOOBAR6_77")
-
-    def test_correct_scenario_in_file(self):
-        """
-        Basic test for whole program
-        """
-        conf = {
             "contents": "tests/FOOBAR/dummy_preupg/all-xccdf.xml",
             "profile": "xccdf_preupg_profile_default",
             "result_dir": self.temp_dir,
@@ -368,60 +344,38 @@ class TestScenario(base.TestCase):
             "debug": True,  # so root check won't fail
             "base_dir": "tests/FOOBAR",
         }
+
+        dir_name = os.path.join("tests", "FOOBAR")
+        version_file = os.path.join(dir_name, settings.upgrade_version_file)
+        FileHelper.write_to_file(version_file, "w", ['6_7'],)
         dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR/dummy_preupg/all-xccdf.xml"])
+        cli = CLI(["--contents", os.path.join(dir_name, "dummy_preupg/all-xccdf.xml")])
         a = Application(Conf(dc, settings, cli))
         # Prepare all variables for test
         a.conf.source_dir = os.getcwd()
         a.content = a.conf.contents
         a.basename = os.path.basename(a.content)
-        self.assertEqual(a.get_scenario(), None)
-        lines = ['6_7']
-        FileHelper.write_to_file(os.path.join('tests/FOOBAR', settings.upgrade_version_file), 'wb', lines)
         self.assertEqual(a.get_scenario(), "FOOBAR")
-        os.unlink(os.path.join('tests/FOOBAR', settings.upgrade_version_file))
+        if os.path.exists(version_file):
+            os.unlink(version_file)
 
-    def test_migration_content_scenario(self):
+    def test_scenario_without_version_file(self):
         """
         Basic test for whole program
         """
         conf = {
-            "contents": "tests/FOOBAR6_CENTOS6/dummy_preupg/all-xccdf.xml",
+            "contents": "tests/FOOBAR_A/dummy_preupg/all-xccdf.xml",
             "profile": "xccdf_preupg_profile_default",
             "result_dir": self.temp_dir,
             "skip_common": True,
             "temp_dir": self.temp_dir,
             "id": None,
             "debug": True,  # so root check won't fail
-            "base_dir": "tests/FOOBAR6_CENTOS6",
+            "base_dir": "tests/FOOBAR_A",
         }
 
         dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR6_CENTOS6/dummy_preupg/all-xccdf.xml"])
-        a = Application(Conf(dc, settings, cli))
-        # Prepare all variables for test
-        a.conf.source_dir = os.getcwd()
-        a.content = a.conf.contents
-        a.basename = os.path.basename(a.content)
-        self.assertEqual(a.get_scenario(), "FOOBAR6_CENTOS6")
-
-    def test_wrong_content_scenario(self):
-        """
-        Basic test for whole program
-        """
-        conf = {
-            "contents": "tests/FOOBAR6_7A/dummy_preupg/all-xccdf.xml",
-            "profile": "xccdf_preupg_profile_default",
-            "result_dir": self.temp_dir,
-            "skip_common": True,
-            "temp_dir": self.temp_dir,
-            "id": None,
-            "debug": True,  # so root check won't fail
-            "base_dir": "tests/FOOBAR6_7A",
-        }
-
-        dc = DummyConf(**conf)
-        cli = CLI(["--contents", "tests/FOOBAR6_7A/dummy_preupg/all-xccdf.xml"])
+        cli = CLI(["--contents", "tests/FOOBAR_A/dummy_preupg/all-xccdf.xml"])
         a = Application(Conf(dc, settings, cli))
         # Prepare all variables for test
         a.conf.source_dir = os.getcwd()
@@ -429,31 +383,48 @@ class TestScenario(base.TestCase):
         a.basename = os.path.basename(a.content)
         self.assertEqual(a.get_scenario(), None)
 
+    def test_scenario_with_wrong_version_file(self):
+        """
+        Basic test for whole program
+        """
+        conf = {
+            "contents": "tests/FOOBAR_A/dummy_preupg/all-xccdf.xml",
+            "profile": "xccdf_preupg_profile_default",
+            "result_dir": self.temp_dir,
+            "skip_common": True,
+            "temp_dir": self.temp_dir,
+            "id": None,
+            "debug": True,  # so root check won't fail
+            "base_dir": "tests/FOOBAR_A",
+        }
 
-class TestPreupgradePrefix(base.TestCase):
+        dir_name = os.path.join("tests", "FOOBAR")
+        version_file = os.path.join(dir_name, settings.upgrade_version_file)
+        FileHelper.write_to_file(version_file, "w", ['6_7'],)
+        dc = DummyConf(**conf)
+        cli = CLI(["--contents", "tests/FOOBAR_A/dummy_preupg/all-xccdf.xml"])
+        a = Application(Conf(dc, settings, cli))
+        # Prepare all variables for test
+        a.conf.source_dir = os.getcwd()
+        a.content = a.conf.contents
+        a.basename = os.path.basename(a.content)
+        self.assertEqual(a.get_scenario(), None)
+        if os.path.exists(version_file):
+            os.unlink(version_file)
+
+
+class TestPreupgradeVersion(base.TestCase):
     def setUp(self):
         settings.prefix = 'preupgrade'
 
-    def test_correct_prefix(self):
-        version = SystemIdentification.get_assessment_version('FOOBAR6_7')
-        self.assertEqual(version, ['6', '7'])
+    def test_correct_version(self):
 
-    def test_wrong_prefix(self):
-        version = SystemIdentification.get_assessment_version('FOOBAR6_CENTOS6')
-        self.assertEqual(version, None)
+        version = SystemIdentification.check_version(['6_7'])
+        self.assertEqual(version, ('6', '7'))
 
-
-class TestPremigratePrefix(base.TestCase):
-    def setUp(self):
-        settings.prefix = 'premigrate'
-
-    def test_correct_prefix(self):
-        version = SystemIdentification.get_assessment_version('FOOBAR6_CENTOS6')
-        self.assertEqual(version, ['6', '6'])
-
-    def test_wrong_prefix(self):
-        version = SystemIdentification.get_assessment_version('FOOBAR6_7')
-        self.assertEqual(version, None)
+    def test_wrong_version(self):
+        version = SystemIdentification.check_version(['7_6'])
+        self.assertEqual(version, False)
 
 
 def suite():
@@ -465,8 +436,7 @@ def suite():
     suite.addTest(loader.loadTestsFromTestCase(TestSolutionReplacement))
     suite.addTest(loader.loadTestsFromTestCase(TestXMLUpdates))
     suite.addTest(loader.loadTestsFromTestCase(TestScenario))
-    suite.addTest(loader.loadTestsFromTestCase(TestPreupgradePrefix))
-    suite.addTest(loader.loadTestsFromTestCase(TestPremigratePrefix))
+    suite.addTest(loader.loadTestsFromTestCase(TestPreupgradeVersion))
     return suite
 
 if __name__ == '__main__':
