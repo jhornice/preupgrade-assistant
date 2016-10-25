@@ -59,6 +59,9 @@ class TestContentGenerate(base.TestCase):
 
 
 class TestGlobalContent(base.TestCase):
+    temp_dir = None
+    dir_name = None
+    result_dir = None
 
     temp_dir = tempfile.mktemp(prefix='preupgrade', dir='/tmp')
     dir_name = os.path.join(os.getcwd(), 'tests', FOO_DIR)
