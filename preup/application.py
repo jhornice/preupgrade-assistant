@@ -471,10 +471,11 @@ class Application(object):
         if not self.conf.contents:
             version = SystemIdentification.get_assessment_version(self.assessment_dir)
             if version is None:
-                log_message("Your scan directory '%s' does not contain 'upgrade_path' file." % os.path.join(settings.source_dir,
+                log_message("The '%s' directory does not contain an 'upgrade_path' file." % os.path.join(settings.source_dir,
                                                                                                             self.conf.scan),
                             level=logging.ERROR)
-                log_message("The 'upgrade_path' file has to contain row like '6_7' for upgrade from 6->7.",
+                log_message("The 'upgrade_path' file must contain a line '6_7' "
+                            "to be able to upgrade, eg. from RHEL 6 to RHEL 7.",
                             level=logging.ERROR)
                 return ReturnValues.SCENARIO
             self.report_parser.modify_platform_tag(version[0])
