@@ -120,7 +120,7 @@ class TestScriptGenerator(base.TestCase):
     test_ini = []
 
     def setUp(self):
-        self.dirname = os.path.join("tests", "FOOBAR6_7" + variables.result_prefix, "test")
+        self.dirname = os.path.join("tests", "FOOBAR" + variables.result_prefix, "test")
         if os.path.exists(self.dirname):
             shutil.rmtree(self.dirname)
         os.makedirs(self.dirname)

@@ -4,6 +4,7 @@ import os
 from preup import settings
 
 dirname = os.path.join(os.path.dirname(__file__), 'tmp')
+
 solution_txt = 'solution.txt'
 os.environ['XCCDF_VALUE_TMP_PREUPGRADE'] = dirname
 os.environ['CURRENT_DIRECTORY'] = dirname
@@ -25,23 +26,7 @@ def suite():
     settings.log_dir = os.getcwd()
     settings.preupg_log = os.path.join(settings.log_dir, "preupg.log")
     settings.preupg_report_log = os.path.join(settings.log_dir, "preupg-report.log")
-
     suite_preup = unittest.TestSuite()
-    dirname = os.path.join(os.path.dirname(__file__), 'tmp')
-    solution_txt = 'solution.txt'
-    os.environ['XCCDF_VALUE_TMP_PREUPGRADE'] = dirname
-    os.environ['CURRENT_DIRECTORY'] = dirname
-    os.environ['XCCDF_VALUE_SOLUTION_FILE'] = solution_txt
-    os.environ['XCCDF_VALUE_REPORT_DIR'] = dirname
-    os.environ['XCCDF_VALUE_CURRENT_DIRECTORY'] = dirname
-    os.environ['XCCDF_RESULT_ERROR'] = "3"
-    os.environ['XCCDF_RESULT_FAILED'] = "2"
-    os.environ['XCCDF_RESULT_FAIL'] = "2"
-    os.environ['XCCDF_RESULT_UNKNOWN'] = "2"
-    os.environ['XCCDF_RESULT_FIXED'] = "1"
-    os.environ['XCCDF_RESULT_NEEDS_INSPECTION'] = "1"
-    os.environ['XCCDF_RESULT_NEEDS_ACTION'] = "1"
-    os.environ['XCCDF_RESULT_NOT_APPLICABLE'] = "10"
     from tests import test_preup
     from tests import test_xml
     from tests import test_generation

@@ -100,6 +100,7 @@ preupgrade_dirs = [dirty_conf_dir, clean_conf_dir,
                    'hooks', 'kickstart', postupgrade_dir, 'common',
                    'preupgrade-scripts', 'noauto_postupgrade.d']
 
+installed_dirs = [postupgrade_dir, 'common', 'kickstart', 'xsl']
 
 PREUPG_README = 'README'
 readme_files = {'README': PREUPG_README,

@@ -449,7 +449,7 @@ class TestPreupgradeVersion(base.TestCase):
     def test_correct_version(self):
 
         version = SystemIdentification.check_version(['6_7'])
-        self.assertEqual(version, ('6', '7'))
+        self.assertEqual(version, ['6', '7'])
 
     def test_wrong_version(self):
         version = SystemIdentification.check_version(['7_6'])

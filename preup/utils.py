@@ -477,7 +477,7 @@ class SystemIdentification(object):
             if version_file:
                 lines = SystemIdentification.check_version_file(version_file)
                 if lines:
-                    return [SystemIdentification.check_version(lines)]
+                    return SystemIdentification.check_version(lines)
 
         elif PreupgHelper.get_prefix() == "premigrate":
             matched = re.search(r'\D+(\d*)_\D+(\d+)', dir_name, re.I)
@@ -488,13 +488,14 @@ class SystemIdentification(object):
             if version_file:
                 lines = SystemIdentification.check_version_file(version_file)
                 if lines:
-                    return [SystemIdentification.check_version(lines)]
+                    return SystemIdentification.check_version(lines)
         return None
 
     @staticmethod
     def check_version(lines):
         try:
             src, target = lines[0].split('_')
+            target = target.strip()
             int(src)
             int(target)
             if int(src) >= int(target):
@@ -503,7 +504,7 @@ class SystemIdentification(object):
             return False
         except ValueError:
             return False
-        return src, target
+        return [src, target]
 
     @staticmethod
     def check_version_file(version_file):

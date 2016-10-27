@@ -152,7 +152,7 @@ class XccdfHelper(object):
             platform = settings.CPE_RHEL
         else:
             platform = settings.CPE_FEDORA
-        platform_id = SystemIdentification.get_assessment_version(full_path)
+        platform_id = SystemIdentification.get_assessment_version(base_dir)
         if platform_id is None:
             version_file = os.path.join(base_dir, settings.upgrade_version_file)
             lines = FileHelper.get_file_content(version_file, 'r', method=True)

@@ -434,7 +434,10 @@ class Application(object):
         self.common.prep_symlinks(self.assessment_dir,
                                   scenario=self.get_proper_scenario(scenario))
         if not self.conf.contents:
-            XccdfHelper.update_platform(os.path.join(self.assessment_dir, settings.content_file))
+            XccdfHelper.update_platform(os.path.join(self.assessment_dir,
+                                                     settings.content_file),
+                                        self.assessment_dir
+                                        )
         else:
             XccdfHelper.update_platform(self.content, self.conf.base_dir)
             self.assessment_dir = os.path.dirname(self.content)
@@ -466,11 +469,12 @@ class Application(object):
             log_message("The module {0} does not exist.".format(self.content))
             return ReturnValues.SCENARIO
         if not self.conf.contents:
-            version = SystemIdentification.get_assessment_version(self.conf.scan)
+            version = SystemIdentification.get_assessment_version(self.assessment_dir)
             if version is None:
-                log_message("Your scan is in a wrong format %s." % version,
+                log_message("Your scan directory '%s' does not contain 'upgrade_path' file." % os.path.join(settings.source_dir,
+                                                                                                            self.conf.scan),
                             level=logging.ERROR)
-                log_message("It should be like 'RHEL6_7' for upgrade from RHEL 6->7.",
+                log_message("The 'upgrade_path' file has to contain row like '6_7' for upgrade from 6->7.",
                             level=logging.ERROR)
                 return ReturnValues.SCENARIO
             self.report_parser.modify_platform_tag(version[0])
@@ -567,15 +571,18 @@ class Application(object):
         dirs = os.listdir(self.conf.source_dir)
         self.list_scans = []
         for dir_name in filter(is_dir, dirs):
-            if SystemIdentification.get_assessment_version(dir_name):
+            # skip directories which are installed by preupgrade-assistant
+            if dir_name in settings.installed_dirs:
+                continue
+            if SystemIdentification.get_assessment_version(os.path.join(self.conf.source_dir, dir_name)):
                 self.conf.scan = dir_name
                 self.list_scans.append(dir_name)
                 logger_debug.debug("Scan directory '%s'", self.conf.scan)
                 cnt += 1
 
         if int(cnt) < 1:
-            log_message("There were no modules found in the %s directory. \
-        If you would like to use this tool, you have to install some." % settings.source_dir)
+            log_message("There were no modules found in the %s directory.\n"
+                        "If you would like to use this tool, you have to install some." % settings.source_dir)
             return ReturnValues.SCENARIO
         if int(cnt) > 1:
             log_message("Preupgrade Assistant detects more "
