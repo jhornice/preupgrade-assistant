@@ -11,7 +11,7 @@
 Name:           preupgrade-assistant
 Version:        2.2.0
 Release:        1%{?dist}
-Summary:        Preupgrade assistant
+Summary:        Preupgrade Assistant advises on feasibility of system upgrade or migration
 Group:          System Environment/Libraries
 License:        GPLv3+
 Source0:        %{name}-%{version}.tar.gz
@@ -88,19 +88,6 @@ OpenSCAP is generated automatically.
 %endif # with_tools
 
 %prep
-# Update timestamps on the files touched by a patch, to avoid non-equal
-# .pyc/.pyo files across the multilib peers within a build, where "Level"
-# is the patch prefix option (e.g. -p1)
-UpdateTimestamps() {
-    Level=$1
-    PatchFile=$2
-    # Locate the affected files:
-    for f in $(diffstat $Level -l $PatchFile); do
-        # Set the files to have the same timestamp as that of the patch:
-        touch -r $PatchFile $f
-    done
-}
-
 %setup -n %{name}-%{version} -q
 %setup -n %{name}-%{version} -D -T -a 1
 %setup -n %{name}-%{version} -D -T -a 2
@@ -182,40 +169,34 @@ rm -f   ${RPM_BUILD_ROOT}%{_bindir}/preupg-ui-manage
 
 %endif # with_ui
 
-###########################################################
-## make special file lists for cleaner files section below
-## - only for files under %%{python_sitelib}/preupg
-########## preupgrade-assistant ###########################
+#############################################################
+## FILELISTS - generate file lists for cleaner %files section
+#############################################################
+get_file_list() {
+    find ${RPM_BUILD_ROOT} -type $1 | grep -o $2 \
+        | grep -vE "$3" | sed "$4" >> $5
+}
+########## preupgrade-assistant #############################
 # now just files
-find ${RPM_BUILD_ROOT} -type f \
-    | grep -o "%{python_sitelib}/.*$" \
-    | grep -vE "preupg/(ui|creator)|\.pyc$" \
-    | sed "s/\.py$/\.py\*/" > preupg-filelist
-
-# now directories
-find ${RPM_BUILD_ROOT} -type d \
-    | grep -o "%{python_sitelib}/.*$" \
-    | grep -vE "preupg/(ui|creator)" \
-    | sed "s/^/\%dir /" >> preupg-filelist
-
-########## preupgrade-assistant-ui ########################
-# files
-find ${RPM_BUILD_ROOT} -type f \
-    | grep -o "%{python_sitelib}/preupg/ui.*$" \
-    | grep -vE "/ui/settings.py|\.pyc$" \
-    | sed "s/\.py$/\.py\*/" > preupg-ui-filelist
-
-# directories
-find ${RPM_BUILD_ROOT} -type d \
-    | grep -o "%{python_sitelib}/preupg/ui.*$" \
-    | sed "s/^/\%dir /" >> preupg-ui-filelist
-
-##########################################################
+get_file_list f %{python_sitelib}/.*$  "preupg/(ui|creator)|\.pyc$" \
+    "s/\.py$/\.py\*/" preupg-filelist
+# now just directories
+get_file_list d %{python_sitelib}/.*$ "preupg/(ui|creator)|\.pyc$" \
+    "s/^/\%dir /" preupg-filelist
+########## preupgrade-assistant-ui ##########################
+get_file_list f %{python_sitelib}/preupg/ui.*$ "/ui/settings.py|\.pyc$" \
+    "s/\.py$/\.py\*/" preupg-ui-filelist
+get_file_list d %{python_sitelib}/preupg/ui.*$ " " \
+    "s/^/\%dir /" preupg-ui-filelist
+#############################################################
 # END FILELISTS
-##########################################################
+#############################################################
 
+%if ! 0%{?fedora:1}
+# clean section should not be used on Fedora per Guidelines
 %clean
 rm -rf $RPM_BUILD_ROOT
+%endif
 
 %post
 /sbin/ldconfig
@@ -263,7 +244,6 @@ fi
 %dir %{_docdir}/%{name}
 %config(noreplace) %{_sysconfdir}/preupgrade-assistant.conf
 %{_sysconfdir}/bash_completion.d/preupg.bash
-#%%{python_sitelib}/*.egg-info
 %{_datadir}/preupgrade/data
 %{_datadir}/preupgrade/common.sh
 %doc %{_datadir}/preupgrade/README
@@ -297,4 +277,5 @@ fi
 %endif # with_tools
 
 %changelog
-
+* Wed Nov 16 2016 Michal Bocek <mbocek@redhat.com> - 2.2.0-1
+- Initial version of spec file in upstream
